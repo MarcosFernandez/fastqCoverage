@@ -31,7 +31,7 @@ A binary should be generated at Release folder called fastqCoverage.
     make clean
     make
 
-A debug binary should be create at Debug folder called fastqCoverage.
+A debug binary should be created at Debug folder called fastqCoverage.
 
 -------------
 Documentation
