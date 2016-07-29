@@ -7,38 +7,40 @@ fastqCoverage allows you to have a raw coverage estimation of your paired end FA
 If your sequenced sample has a set of Paired End files you can calculate the coverage per each one and then use getStats command to have the total coverage
 of your sample. 
 
+---------
 Licensing
 ---------
 
 fastqCoverage is licensed under GPL.
 
+-----------
 Compilation
 -----------
 
 1) For common usage compile the Release version:
 
-   cd fastqCoverage/Release
-   make clean
-   make
+    cd fastqCoverage/Release
+    make clean
+    make
 
 A binary should be generated at Release folder called fastqCoverage.
 
 2) For testing usage compile the Debug version:
 
-   cd fastqCovergae/Debug
-   make clean
-   make
+    cd fastqCovergae/Debug
+    make clean
+    make
 
 A debug binary should be create at Debug folder called fastqCoverage.
 
-
+-------------
 Documentation
 -------------
 
 fastqCoverage has three commands:
 
 1) Downsampling 
-^^^^^^^^^^^^^^^
+---------------
 
 Outputs a couple of paired end files with a reduced number of reads according to a decrease ratio coverage.
 
@@ -47,14 +49,15 @@ Outputs a couple of paired end files with a reduced number of reads according to
 Reduces half coverage (-r 0.5) gzipped input Paired End fastq files. 
 
 2) Raw Coverage
-^^^^^^^^^^^^^^^
+---------------
 
 Outputs a coverage estimation from a given reference genome length in base pairs.
 
     fastqCoverage getCoverage -a pair_1.fastq.gz -b pair_2.fastq.gz -l reference_length -z
 
+-----------------
 3) Total Coverage
-^^^^^^^^^^^^^^^^^
+-----------------
 
 From a coverage stats file outputs the total coverage.
 
@@ -83,7 +86,7 @@ or per each command:
     fastqCoverage getCoverage -h
     fastqCoverage getStats -h
 
-
+------
 Author
 ------
 
