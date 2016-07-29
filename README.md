@@ -11,7 +11,7 @@ of your sample.
 Licensing
 ---------
 
-fastqCoverage is licensed under GPL.
+fastqCoverage is licensed under GPL. See LICENSE for more information.
 
 -----------
 Compilation
