@@ -33,6 +33,7 @@ struct StatsInfo
 
 int setupFileDescriptor(char * fileName,void ** fileDescriptor,int isZip,char * openMode);
 void fileCloseInput(void * fileDescriptor,int isZip);
+void freeFastqRead(struct FastqRead * fastqRead);
 void freeMemFastqRead(struct FastqRead * fastqRead1,struct FastqRead * fastqRead2);
 int getFastqRead(void * fileDescriptor,struct FastqRead * fastqRead,int isGzip);
 int writeFastqRead(void * fileDescriptor,struct FastqRead * fastqRead,int isGzip);

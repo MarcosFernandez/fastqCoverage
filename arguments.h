@@ -12,6 +12,8 @@
 #define GET_COVERAGE 1
 #define GET_STATS 2
 
+#define PAIRED_END 0
+#define SINGLE_END 1
 
 struct Args
 {
@@ -22,12 +24,11 @@ struct Args
 	char * out_fastq_2_file;
 	char * fileStats;
 	int isZipped;
+	unsigned int seqMode;
 	float reduction_ratio;
 	unsigned long long int reference_length;
 };
 
-
 int getArgs (struct Args * arguments, int argc, char *argv[]);
-
 
 #endif /* ARGUMENTS_H_ */

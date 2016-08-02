@@ -15,18 +15,22 @@
  */
 void printHelp()
 {
-	printf("usage: fastqCoverage [-h] <command>... \n");
+	printf("usage: fastqCoverage [-h] [single-end] <command>... \n");
 	printf("\n");
 	printf("fastqCoverage parses paired end files. Can be gzipped. \n");
 	printf("It is able to reduce coverage, calculate coverage per set of Paired End files. \n");
 	printf("Can also calculate global coverages for a set of files. \n");
 	printf("\n");
+	printf("fastqCoverage can process Single End data, you should use single-end argument before the command.\n");
+	printf("\n");
+	printf("\n");
 	printf("\t-h\t show this help message and exit\n");
 	printf("\n");
 	printf("commands:\n");
 	printf("\n");
-	printf("\t downsampling \t Reduces the coverage for a given pair of files.\n");
-	printf("\t getCoverage \t Calculates the number of bases in a pair of files and gets a coverage value.\n");
+	printf("\t downsampling \t Reduces the coverage for a given pair of files or a unique (single end) fastq file.\n");
+	printf("\t getCoverage \t Calculates the number of bases in a pair of files (paired end) or a unique (single end) file \n");
+	printf("\t \t \t and gets a coverage value.\n");
 	printf("\t getStats \t From getCoverage output gets a global coverage value.\n");
 }
 
@@ -34,11 +38,21 @@ void printHelp()
 /**
  * \brief Print Downdampling Help
  */
-void printDownsamplingHelp()
+void printDownsamplingHelp(unsigned int seqMode)
 {
-	printf("usage: fastqCoverage downsampling [-h] -r ratio -a pair_1.fastq.gz -b pair_2.fastq.gz -x out_pair_1.fastq.gz -y out_pair_2.fastq.gz [-z] \n");
+	if(seqMode == PAIRED_END)
+	{
+		printf("usage: fastqCoverage downsampling [-h] -r ratio -a pair_1.fastq.gz -b pair_2.fastq.gz -x out_pair_1.fastq.gz -y out_pair_2.fastq.gz [-z] \n");
+	}
+	else
+	{
+		printf("usage: fastqCoverage single-end downsampling [-h] -r ratio -a file.fastq.gz -x out_file.fastq.gz [-z] \n");
+	}
+
 	printf("\n");
-	printf("Reduces the coverage of a couple of paired end files.\n");
+	if(seqMode == PAIRED_END) printf("Reduces the coverage of a couple of paired end files.\n");
+	else printf("Reduces the coverage of a single end file.\n");
+
 	printf("\n");
 	printf("Optional Arguments:\n");
 	printf("\n");
@@ -47,22 +61,39 @@ void printDownsamplingHelp()
 	printf("\n");
 	printf("Mandatory Arguments:\n");
 	printf("\n");
-	printf("\t-r\t Decreasing ratio to apply. Value must be betwee 0 and 1. \n");
+	printf("\t-r\t Decreasing ratio to apply. Value must be between 0 and 1. \n");
 	printf("\t \t \t 0.5 stands for 50% reduction. 0.75 stands for 75% reduction. \n");
-	printf("\t-a\t First FASTQ pair file. Can be gzipped. \n");
-	printf("\t-b\t Second FASTQ pair file. Can be gzipped. \n");
-	printf("\t-x\t Output First FASTQ pair file. If inputs are gzipped then output will be gzipped. \n");
-	printf("\t-y\t Output Second FASTQ pair file. If inputs are gzipped then output will be gzipped. \n");
+
+	if(seqMode == PAIRED_END)
+	{
+		printf("\t-a\t First FASTQ pair file. Can be gzipped. \n");
+		printf("\t-b\t Second FASTQ pair file. Can be gzipped. \n");
+		printf("\t-x\t Output First FASTQ pair file. If inputs are gzipped then output will be gzipped. \n");
+		printf("\t-y\t Output Second FASTQ pair file. If inputs are gzipped then output will be gzipped. \n");
+	}
+	else
+	{
+		printf("\t-a\t FASTQ input file. Can be gzipped. \n");
+		printf("\t-x\t FASTQ output file. If inputs are gzipped then output will be gzipped. \n");
+	}
 }
 
 /**
  * \brief Print Get Coverage Help
  */
-void printGetCoverageHelp()
+void printGetCoverageHelp(unsigned int seqMode)
 {
-	printf("usage: fastqCoverage getCoverage [-h] -a pair_1.fastq.gz -b pair_2.fastq.gz -l reference_length [-z] \n");
-	printf("\n");
-	printf("Get total number of bases in a fastq file and calculates the coverage from a reference length.\n");
+	if(seqMode == PAIRED_END)
+	{
+		printf("usage: fastqCoverage getCoverage [-h] -a pair_1.fastq.gz -b pair_2.fastq.gz -l reference_length [-z] \n");
+		printf("Get total number of bases in a couple of paired end fastq files and calculates the coverage from a reference length.\n");
+	}
+	else
+	{
+		printf("usage: fastqCoverage single-end getCoverage [-h] -a file.fastq.gz -l reference_length [-z] \n");
+		printf("\n");
+		printf("Get total number of bases in a fastq file and calculates the coverage from a reference length.\n");
+	}
 	printf("\n");
 	printf("\t Output format: \n");
 	printf("\t [numberOfBases(tab)ReferenceLength(tab)Coverage]\n");
@@ -74,8 +105,15 @@ void printGetCoverageHelp()
 	printf("\n");
 	printf("Mandatory Arguments:\n");
 	printf("\n");
-	printf("\t-a\t First FASTQ pair file. Can be gzipped. \n");
-	printf("\t-b\t Second FASTQ pair file. Can be gzipped. \n");
+	if(seqMode == PAIRED_END)
+	{
+		printf("\t-a\t First FASTQ pair file. Can be gzipped. \n");
+		printf("\t-b\t Second FASTQ pair file. Can be gzipped. \n");
+	}
+	else
+	{
+		printf("\t-a\t First Single End file. Can be gzipped. \n");
+	}
 	printf("\t-l\t Reference length. \n");
 }
 
@@ -111,6 +149,7 @@ void printGetStatsHelp()
 void initArgs(struct Args * arguments)
 {
 	arguments->perform = DOWNSAMPLING;
+	arguments->seqMode = PAIRED_END;
 	arguments->fastq_1_file = NULL;
 	arguments->fastq_2_file = NULL;
 	arguments->out_fastq_1_file = NULL;
@@ -133,7 +172,7 @@ int processArgumentsDownsampling(struct Args * arguments, int argc, char *argv[]
 		switch(opt)
 		{
 		    case 'h':
-		    	printDownsamplingHelp();
+		    	printDownsamplingHelp(arguments->seqMode);
 			    return 0;
 			    break;
 			case 'r':
@@ -167,18 +206,27 @@ int processArgumentsDownsampling(struct Args * arguments, int argc, char *argv[]
 	}
 	else if (arguments->fastq_2_file == NULL)
 	{
-		printf("Sorry!! Fastq file for second pair is not defined!! \n");
-		return 0;
+		if (arguments->seqMode == PAIRED_END)
+		{
+			printf("Sorry!! Fastq file for second pair is not defined!! \n");
+			return 0;
+		}
 	}
 	else if (arguments->out_fastq_1_file == NULL)
 	{
-		printf("Sorry!! Output Fastq file for first pair is not defined!! \n");
-		return 0;
+		if (arguments->seqMode == PAIRED_END)
+		{
+			printf("Sorry!! Output Fastq file for first pair is not defined!! \n");
+			return 0;
+		}
 	}
 	else if (arguments->out_fastq_2_file == NULL)
 	{
-		printf("Sorry!! Output Fastq file for second pair is not defined!! \n");
-		return 0;
+		if (arguments->seqMode == PAIRED_END)
+		{
+			printf("Sorry!! Output Fastq file for second pair is not defined!! \n");
+			return 0;
+		}
 	}
 
 	return 1;
@@ -196,7 +244,7 @@ int processArgumentsGetCoverage(struct Args * arguments, int argc, char *argv[])
 		switch(opt)
 		{
 		    case 'h':
-		    	printGetCoverageHelp();
+		    	printGetCoverageHelp(arguments->seqMode);
 			    return 0;
 			    break;
 			case 'a':
@@ -224,8 +272,11 @@ int processArgumentsGetCoverage(struct Args * arguments, int argc, char *argv[])
 	}
 	else if (arguments->fastq_2_file == NULL)
 	{
-		printf("Sorry!! Fastq file for second pair is not defined!! \n");
-		return 0;
+		if (arguments->seqMode == PAIRED_END)
+		{
+			printf("Sorry!! Fastq file for second pair is not defined!! \n");
+			return 0;
+		}
 	}
 
 	return 1;
@@ -278,6 +329,8 @@ int getArgs (struct Args * arguments, int argc, char *argv[])
 {
 	initArgs(arguments);
 
+	char * command;
+
 	if (argc > 2)
 	{
 		if (strcmp(argv[1],"-h") == 0)
@@ -285,17 +338,27 @@ int getArgs (struct Args * arguments, int argc, char *argv[])
 			printHelp();
 			return 0;
 		}
-		else if (strcmp(argv[1],"downsampling") == 0)
+		else if (strcmp(argv[1],"single-end") == 0)
+		{
+			arguments->seqMode = SINGLE_END;
+			command = argv[2];
+		}
+		else
+		{
+			command = argv[1];
+		}
+
+		if (strcmp(command,"downsampling") == 0)
 		{
 			arguments->perform = DOWNSAMPLING;
 			return processArgumentsDownsampling(arguments,argc,argv);
 		}
-		else if (strcmp(argv[1],"getCoverage") == 0)
+		else if (strcmp(command,"getCoverage") == 0)
 		{
 			arguments->perform = GET_COVERAGE;
 			return processArgumentsGetCoverage(arguments,argc,argv);
 		}
-		else if (strcmp(argv[1],"getStats") == 0)
+		else if (strcmp(command,"getStats") == 0)
 		{
 			arguments->perform = GET_STATS;
 			return processArgumentsGetStats(arguments,argc,argv);
